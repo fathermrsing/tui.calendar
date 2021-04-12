@@ -454,6 +454,12 @@ var helpers = {
     },
     'popupDelete-tmpl': function() {
         return 'Delete';
+    },
+    'creationPopupDetailUserPlaceHolder-tmpl': function() {
+        return 'Users';
+    },
+    'creationPopupDetailUsers-tmpl': function(schedule) {
+        return typeof schedule === 'undefined' ? '' : (schedule.attendees || []).join(', ');
     }
 };
 

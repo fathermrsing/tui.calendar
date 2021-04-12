@@ -1504,6 +1504,31 @@ Calendar.prototype._onBeforeUpdate = function(updateScheduleData) {
 };
 
 /**
+ * @fires Calendar#attendeesInputClick
+ * @param {object} ScheduleData - select user interface {@link Schedule} data
+ * @private
+ */
+Calendar.prototype._onAttendeesInputClick = function(ScheduleData) {
+    /**
+     * Fire this event when drag a schedule to change time in daily, weekly, monthly.
+     * @event Calendar#attendeesInputClick
+     * @type {object}
+     * @property {Schedule} schedule - The original {@link Schedule} instance
+     * @property {object} changes - The {@link Schedule} properties and values with changes to update
+     * @property {Date} start - Deprecated: start time to update
+     * @property {Date} end - Deprecated: end time to update
+     * @example
+     * calendar.on('attendeesInputClick', function(event) {
+     *     var schedule = event.schedule;
+     *     var changes = event.changes;
+     *
+     *     calendar.updateSchedule(schedule.id, schedule.calendarId, changes);
+     * });
+     */
+    this.fire('attendeesInputClick', ScheduleData);
+};
+
+/**
  * @fires Calendar#beforeDeleteSchedule
  * @param {object} deleteScheduleData - delete schedule data
  * @private
@@ -1585,6 +1610,7 @@ Calendar.prototype._toggleViewSchedule = function(isAttach, view) {
 
     util.forEach(handler.creation, function(creationHandler) {
         creationHandler[method]('beforeCreateSchedule', self._onBeforeCreate, self);
+        creationHandler[method]('attendeesInputClick', self._onAttendeesInputClick, self);
         creationHandler[method]('beforeDeleteSchedule', self._onBeforeDelete, self);
     });
 
@@ -1600,6 +1626,7 @@ Calendar.prototype._toggleViewSchedule = function(isAttach, view) {
     view[method]('afterRenderSchedule', self._onAfterRenderSchedule, self);
     view[method]('clickTimezonesCollapseBtn', self._onClickTimezonesCollapseBtn, self);
     view[method]('clickMore', self._onClickMore, self);
+    // view[method]('attendeesInputClick', self._onAttendeesInputClick, self);
 };
 
 /**

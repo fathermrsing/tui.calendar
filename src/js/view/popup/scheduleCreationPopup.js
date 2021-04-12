@@ -51,8 +51,12 @@ function ScheduleCreationPopup(container, calendars, usageStatistics) {
         this._toggleIsPrivate.bind(this),
         this._onClickSaveSchedule.bind(this)
     ];
+    this._onDblclickListeners = [
+        this._selectAttendees.bind(this)
+    ];
 
     domevent.on(container, 'click', this._onClick, this);
+    domevent.on(container, 'dblclick', this._onDblclick, this);
 }
 
 util.inherit(ScheduleCreationPopup, View);
@@ -93,6 +97,19 @@ ScheduleCreationPopup.prototype._onClick = function(clickEvent) {
     var target = domevent.getEventTarget(clickEvent);
 
     util.forEach(this._onClickListeners, function(listener) {
+        return !listener(target);
+    });
+};
+
+/**
+ * @override
+ * dblClick event handler for close button
+ * @param {MouseEvent} dblclickEvent - mouse event object
+ */
+ScheduleCreationPopup.prototype._onDblclick = function(dblclickEvent) {
+    var target = domevent.getEventTarget(dblclickEvent);
+
+    util.forEach(this._onDblclickListeners, function(listener) {
         return !listener(target);
     });
 };
@@ -213,6 +230,39 @@ ScheduleCreationPopup.prototype._toggleIsAllday = function(target) {
 };
 
 /**
+ * Request schedule model creation to controller by custom schedules.
+ * @fires {ScheduleCreationPopup#attendeesInputClick}
+ * @param {{
+    calendarId: {string},
+    title: {string},
+    location: {string},
+    start: {TZDate},
+    end: {TZDate},
+    isAllDay: {boolean},
+    state: {string},
+    isPrivate: {boolean}
+  }} target schedule input form data
+*/
+ScheduleCreationPopup.prototype._selectAttendees = function(target) {
+    var className = config.classname('schedule-attendees');
+    var attendeesSection = domutil.hasClass(target, className) ? target : domutil.closest(target, '.' + className);
+
+    if (attendeesSection) {
+        /**
+         * @event ScheduleCreationPopup#attendeesInputClick
+         * @type {object}
+         * @property {Schedule} schedule - schedule object to be updated
+         */
+        this.fire('attendeesInputClick', {
+            schedule: this._schedule,
+            calendar: this._selectedCal,
+            triggerEventName: 'click',
+            eventTarget: target
+        });
+    }
+};
+
+/**
  * Toggle private button
  * @param {HTMLElement} target click event target
  * @returns {boolean} whether event target is private section or not
@@ -274,6 +324,7 @@ ScheduleCreationPopup.prototype._onClickSaveSchedule = function(target) {
     form = {
         calendarId: this._selectedCal ? this._selectedCal.id : null,
         title: title,
+        attendees: domutil.get(cssPrefix + 'schedule-attendees'),
         location: domutil.get(cssPrefix + 'schedule-location'),
         start: rangeDate.start,
         end: rangeDate.end,
@@ -362,6 +413,7 @@ ScheduleCreationPopup.prototype._makeEditModeData = function(viewModel) {
         selectedCal: this._selectedCal,
         calendars: calendars,
         title: title,
+        schedule: schedule,
         isPrivate: isPrivate,
         location: location,
         isAllDay: isAllDay,
@@ -432,10 +484,10 @@ ScheduleCreationPopup.prototype._getBoundOfFirstRowGuideElement = function(guide
     bound = guideElements[0].getBoundingClientRect();
 
     return {
-        top: bound.top,
-        left: bound.left,
-        bottom: bound.bottom,
-        right: bound.right
+        'top': bound.top,
+        'left': bound.left,
+        'bottom': bound.bottom,
+        'right': bound.right
     };
 };
 
@@ -594,7 +646,18 @@ ScheduleCreationPopup.prototype._setArrowDirection = function(arrow) {
  */
 ScheduleCreationPopup.prototype._createDatepicker = function(start, end, isAllDay) {
     var cssPrefix = config.cssPrefix;
-
+    DatePicker.localeTexts.zh = {
+        titles: {
+            DD: ['星期天', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
+            D: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
+            MMMM: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+            MMM: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
+        },
+        titleFormat: 'yyyy年 MMMM',
+        todayFormat: '今天是 yyyy年MMMMdd日, D',
+        date: '日期',
+        time: '时间'
+    };
     this.rangePicker = DatePicker.createRangePicker({
         startpicker: {
             date: new TZDate(start).toDate(),
@@ -611,6 +674,7 @@ ScheduleCreationPopup.prototype._createDatepicker = function(start, end, isAllDa
             showMeridiem: false,
             usageStatistics: this._usageStatistics
         },
+        language: 'zh',
         usageStatistics: this._usageStatistics
     });
 };
@@ -708,10 +772,13 @@ ScheduleCreationPopup.prototype._getRangeDate = function(startDate, endDate, isA
 ScheduleCreationPopup.prototype._onClickUpdateSchedule = function(form) {
     var changes = common.getScheduleChanges(
         this._schedule,
-        ['calendarId', 'title', 'location', 'start', 'end', 'isAllDay', 'state'],
+        ['calendarId', 'attendees', 'title', 'location', 'start', 'end', 'isAllDay', 'state'],
         {
             calendarId: form.calendarId,
             title: form.title.value,
+            attendees: form.attendees.value.split(', ').map(function(e) {
+                return e.replaceAll(' ', '');
+            }),
             location: form.location.value,
             start: form.start,
             end: form.end,
@@ -761,6 +828,9 @@ ScheduleCreationPopup.prototype._onClickCreateSchedule = function(form) {
     this.fire('beforeCreateSchedule', {
         calendarId: form.calendarId,
         title: form.title.value,
+        attendees: form.attendees.value.split(', ').map(function(e) {
+            return e.replaceAll(' ', '');
+        }),
         location: form.location.value,
         raw: {
             class: form.isPrivate ? 'private' : 'public'

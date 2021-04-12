@@ -273,10 +273,15 @@ module.exports = {
     getScheduleChanges: function(schedule, propNames, data) {
         var changes = {};
         var dateProps = ['start', 'end'];
+        var arrayProps = ['attendees'];
 
         util.forEach(propNames, function(propName) {
             if (dateProps.indexOf(propName) > -1) {
                 if (datetime.compare(schedule[propName], data[propName])) {
+                    changes[propName] = data[propName];
+                }
+            } else if (arrayProps.indexOf(propName) > -1) {
+                if (schedule[propName].join() !== data[propName].join()) {
                     changes[propName] = data[propName];
                 }
             } else if (!util.isUndefined(data[propName]) && schedule[propName] !== data[propName]) {

@@ -88,15 +88,15 @@
     "webpack-dev-server": "^3.11.0"
   },
   "scripts": {
+    "eslint": "eslint ./src",
+    "tslint": "tslint index.d.ts",
     "test": "karma start --no-single-run",
     "test:ne": "KARMA_SERVER=ne karma start",
     "test:types": "tsc --project test/types",
     "bundle": "webpack --mode development && NODE_ENV=production webpack --mode production && node tsBannerGenerator.js",
     "serve": "webpack-dev-server --mode development --progress --inline --hot",
     "cpy-dist2doc": "mkdir -p doc/dist && cp -f -r dist doc",
-    "release-note": "tuie",
-    "eslint": "eslint ./src",
-    "tslint": "tslint index.d.ts",
+    "release-note": "tuie",    
     "doc:serve": "tuidoc --serv",
     "doc": "tuidoc"
   },

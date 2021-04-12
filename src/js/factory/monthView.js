@@ -52,7 +52,7 @@ function getViewModelForMoreLayer(date, target, schedules, daynames) {
 function createMonthView(baseController, layoutContainer, dragHandler, options) {
     var monthViewContainer, monthView, moreView, createView;
     var clickHandler, creationHandler, resizeHandler, moveHandler, clearSchedulesHandler, onUpdateSchedule;
-    var onShowCreationPopup, onSaveNewSchedule, onShowEditPopup;
+    var onShowCreationPopup, onSaveNewSchedule, onShowEditPopup, onAttendeesInputClick;
     var detailView, onShowDetailPopup, onDeleteSchedule, onEditSchedule;
 
     monthViewContainer = domutil.appendHTMLElement(
@@ -123,6 +123,13 @@ function createMonthView(baseController, layoutContainer, dragHandler, options) 
             }));
         };
         createView.on('beforeCreateSchedule', onSaveNewSchedule);
+
+        onAttendeesInputClick = function(scheduleData) {
+            creationHandler.fire('attendeesInputClick', util.extend(scheduleData, {
+                useCreationPopup: true
+            }));
+        };
+        createView.on('attendeesInputClick', onAttendeesInputClick);
     }
 
     // binding popup for schedule detail

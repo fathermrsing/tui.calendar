@@ -34,6 +34,7 @@ export interface IEvents {
     'beforeCreateSchedule'?: (schedule: ISchedule) => void;
     'beforeDeleteSchedule'?: (eventObj: IEventScheduleObject) => void;
     'beforeUpdateSchedule'?: (eventObj: IEventObject) => void;
+    'attendeesInputClick'?: (eventObj: IEventObject) => void;
     'clickDayname'?: (eventObj: IEventDateObject) => void;
     'clickMore'?: (eventObj: IEventMoreObject) => void;
     'clickSchedule'?: (eventObj: IEventScheduleObject) => void;
@@ -195,12 +196,12 @@ export interface ISchedule {
     customStyle?: string;
     raw?: {
       [propName: string]: string | number | boolean | object | null;
-    }
+    };
     state?: string;
 }
 
 export interface ITimezone {
-    timezoneName: string,
+    timezoneName: string;
     displayLabel?: string;
     tooltip?: string;
     timezoneOffset?: number;
